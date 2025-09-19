@@ -1,0 +1,51 @@
+.detailBody {
+  margin: 40px auto;
+  max-width: 800px;
+}
+
+.detailThumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detailContent {
+  padding: 1rem;
+}
+
+.detailMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.detailDate {
+  color: #888;
+  font-size: .8rem;
+}
+
+.detailCategories {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+}
+
+.detailCategory {
+  border: 1px solid #06c;
+  border-radius: .2rem;
+  color: #06c;
+  font-size: .8rem;
+  padding: .2rem .4rem;
+  list-style: none;
+}
+
+.detailTitle {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  margin-top: .5rem;
+}
+
+.detailExcerpt {
+  font-size: 1rem;
+  line-height: 1.5;
+}
