@@ -1,0 +1,23 @@
+.header {
+  background-color: #333;
+  color: #fff;
+  font-weight: 700;
+  padding: 24px;
+}
+
+.headerList {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0;
+  padding: 0;
+}
+
+.headerItem {
+  list-style: none;
+}
+
+.headerLink {
+  color: #fff;
+  text-decoration: none;
+}
