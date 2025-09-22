@@ -3,7 +3,7 @@ import Link from "next/link";
 import React from 'react';
 import classes from './Header.module.css';
 
-const Header = () => {
+const Header: React.FC = () => {
   return (
     <header className={classes.header}>
       <nav>

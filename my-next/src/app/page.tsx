@@ -5,14 +5,8 @@ import Link from "next/link";
 import parse from "html-react-parser";
 import React, { useEffect, useState } from "react";
 import classes from "./page.module.css";
+import type { Post } from './_types/Types';
 
-type Post = {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  categories: string[];
-};
 
 export default function BlogList() {
   const [posts, setPosts] = useState<Post[]>([]);
