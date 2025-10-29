@@ -6,13 +6,7 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import Chip from '@mui/material/Chip'
-
-interface Category {
-  id: number
-  name: string
-  createdAt: string
-  updatedAt: string
-}
+import { Category } from '../../../_types/Category'
 
 interface Props {
   selectedCategories:Category[]

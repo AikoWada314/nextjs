@@ -8,6 +8,7 @@ interface Props {
   setName: (title: string) => void
   onSubmit: (e: React.FormEvent) => void
   onDelete?: () => void
+  isLoading?: boolean
 }
 
 export const CategoryForm: React.FC<Props> = ({
@@ -15,7 +16,8 @@ export const CategoryForm: React.FC<Props> = ({
   name,
   setName,
   onSubmit,
-  onDelete,  
+  onDelete,
+  isLoading = false,
 }) => {
   return(
   <form onSubmit={onSubmit} className="space-y-4">
@@ -29,6 +31,7 @@ export const CategoryForm: React.FC<Props> = ({
           type="text"
           id="title"
           value={name}
+          disabled={isLoading}
           onChange={(e) => setName(e.target.value)}
           className="mt-1 block w-full rounded-md border border-gray-200 p-3"
         />
@@ -36,16 +39,18 @@ export const CategoryForm: React.FC<Props> = ({
     <button
         type="submit"
         className="py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        disabled={isLoading}
       >
         {mode === 'new' ? '作成' : '更新'}
       </button>
       {mode === 'edit' && (
         <button
           type="button"
+          disabled={isLoading}
           className="py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ml-2"
           onClick={onDelete}
         >
-          削除
+          {isLoading ? '処理中...' : '削除'}
         </button>
       )}
   </form>

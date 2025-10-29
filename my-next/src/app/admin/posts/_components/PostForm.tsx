@@ -14,6 +14,7 @@ interface Props {
   setCategories: (categories: Category[]) => void
   onSubmit: (e: React.FormEvent) => void
   onDelete?: () => void
+  isLoading?: boolean
 }
 
 export const PostForm: React.FC<Props> = ({
@@ -28,6 +29,7 @@ export const PostForm: React.FC<Props> = ({
   setCategories,
   onSubmit,
   onDelete,
+  isLoading = false,
 }) => {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
@@ -42,6 +44,7 @@ export const PostForm: React.FC<Props> = ({
           type="text"
           id="title"
           value={title}
+          disabled={isLoading}
           onChange={(e) => setTitle(e.target.value)}
           className="mt-1 block w-full rounded-md border border-gray-200 p-3"
         />
@@ -56,6 +59,7 @@ export const PostForm: React.FC<Props> = ({
         <textarea
           id="content"
           value={content}
+          disabled={isLoading}
           onChange={(e) => setContent(e.target.value)}
           className="mt-1 block w-full rounded-md border border-gray-200 p-3"
         />
@@ -71,6 +75,7 @@ export const PostForm: React.FC<Props> = ({
           type="text"
           id="thumbnailUrl"
           value={thumbnailUrl}
+          disabled={isLoading}
           onChange={(e) => setThumbnailUrl(e.target.value)}
           className="mt-1 block w-full rounded-md border border-gray-200 p-3"
         />
@@ -89,6 +94,7 @@ export const PostForm: React.FC<Props> = ({
       </div>
       <button
         type="submit"
+        disabled={isLoading}
         className="py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
       >
         {mode === 'new' ? '作成' : '更新'}
@@ -96,10 +102,11 @@ export const PostForm: React.FC<Props> = ({
       {mode === 'edit' && (
         <button
           type="button"
+          disabled={isLoading}
           className="py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ml-2"
           onClick={onDelete}
         >
-          削除
+           {isLoading ? '処理中...' : '削除'}
         </button>
       )}
     </form>

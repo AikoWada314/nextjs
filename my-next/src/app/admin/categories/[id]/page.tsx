@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { CategoryForm } from '../_components/CategoryForm'
-import AdminBar from '../../_components/AdminBar'
 
 
 
 export default function CategoryEdit() {
   const [name, setName] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
   //useParamsの初期化
   const { id } = useParams()
   const router = useRouter()
@@ -16,7 +16,9 @@ export default function CategoryEdit() {
     //更新ボタンを押したときの処理
     const handleSubmit = async(e:React.FormEvent) =>{
       e.preventDefault()
+      setIsLoading(true)
 
+    try {
       const res = await fetch(`/api/admin/categories/${id}`,{
         method:'PUT',
         headers:{
@@ -25,15 +27,25 @@ export default function CategoryEdit() {
         body:JSON.stringify({name})
       })
   
-        alert('カテゴリーを更新しました。')
-        router.push('/admin/categories')
+      if (!res.ok) {
+        throw new Error('更新に失敗しました')
+      }
 
+      alert('カテゴリーを更新しました。')
+      router.push('/admin/categories')
+
+      } catch (error) {
+        alert(`カテゴリーの更新に失敗しました: ${error.message}`)
+      }
+      finally {
+        setIsLoading(false)
+      }
     }
 
     //削除ボタンを押したときの処理
     const handleDelete = async () => {
     if (!confirm('カテゴリーを削除しますか？')) return
-
+    setIsLoading(true)
     try {
       const res = await fetch(`/api/admin/categories/${id}`, {
         method: 'DELETE',
@@ -51,6 +63,9 @@ export default function CategoryEdit() {
     } catch (error) {
       alert(`カテゴリーの削除に失敗しました: ${error.message}`)
     }
+    finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -64,17 +79,14 @@ export default function CategoryEdit() {
   }, [id])
 
   return (
-     <div className="flex min-h-screen">
-      <AdminBar />
-      <div className="main flex-1 pl-10 pr-10 pt-10">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">カテゴリー編集</h1>
-        </div>
-        <div className="">
-          <CategoryForm mode="edit" name={name} setName={setName} onSubmit={handleSubmit} onDelete={handleDelete}>
-          </CategoryForm>
-        </div>
+    <div className="main flex-1 pl-10 pr-10 pt-10">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">カテゴリー編集</h1>
       </div>
-     </div>
+      <div className="">
+        <CategoryForm mode="edit" name={name} setName={setName} onSubmit={handleSubmit} onDelete={handleDelete} isLoading={isLoading}>
+        </CategoryForm>
+      </div>
+    </div>
   );
 }
