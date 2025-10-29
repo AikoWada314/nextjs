@@ -2,7 +2,7 @@
 
 
 import React, { ReactNode, useState } from "react";
-import type { ApiType } from '../_types/Types';
+import type { ApiType } from '../_types/Post';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', content: '' });
@@ -107,7 +107,7 @@ export default function Contact() {
       <div className="max-w-[800px] mx-auto py-10">
         <h1 className="text-xl font-bold mb-10">問い合わせフォーム</h1>
         <form onSubmit={handleSubmit}>
-          <div className="flex">
+          <div className="flex min-h-screen">
             <label htmlFor="name" className="w-[240px]">お名前</label>
             <div className="flex-1">
               <input id="name" type="text" name="name" value={form.name} onChange={handleForm} disabled={submitting} className="border border-gray-300 rounded-lg p-4 w-full"/>
