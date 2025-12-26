@@ -2,12 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useRouteGuard } from '@/app/_hooks/useRouteGuard'
+
 
 export default function AdminBar({
   children,
 }: {
   children: React.ReactNode
 }) {
+    useRouteGuard()
 
   const pathname = usePathname()
   const isSelected = (href: string) => {

@@ -3,10 +3,19 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const prisma = new PrismaClient()
 
+
 ///////////////////////////
 //記事一覧取得
 //////////////////////////
 export const GET = async (request: NextRequest) => {
+  const token = request.headers.get('Authorization') ?? ''
+
+	// supabaseに対してtokenを送る
+  const { error } = await supabase.auth.getUser(token)
+
+  // 送ったtokenが正しくない場合、errorが返却されるので、クライアントにもエラーを返す
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 })
   try {
     const posts = await prisma.post.findMany({
       include: {

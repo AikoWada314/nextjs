@@ -3,16 +3,26 @@
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { Post } from "../../_types/Post";
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 export default function AdminPage() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const { token } = useSupabaseSession()
+
+
   useEffect(() => {
+    if (!token) return
     const fetcher = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch("/api/admin/posts");
+        const res = await fetch("/api/admin/posts", {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token, // 👈 Header に token を付与
+        },
+        });
         
         if (!res.ok) {
           throw new Error('投稿の取得に失敗しました');
@@ -30,7 +40,7 @@ export default function AdminPage() {
     };
 
     fetcher();
-  }, []);
+  }, [token]);
 
   if (isLoading) return <div>読み込み中</div>;
   

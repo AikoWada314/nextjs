@@ -1,23 +1,47 @@
 
+'use client'
+
 import Link from "next/link";
 import React from 'react';
 import classes from './Header.module.css';
+import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession'
+import { supabase } from '@/app/utils/supabase'
 
-const Header: React.FC = () => {
+export const Header: React.FC = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/'
+  }
+
+  const { session, isLoding } = useSupabaseSession()
   return (
-    <header className={classes.header}>
-      <nav>
-        <ul className={classes.headerList}>
-          <li className={classes.headerItem}>
-            <Link href="/" className={classes.headerLink}>Blog</Link>
-          </li>
-          <li className={classes.headerItem}>
-            <Link href="/contact" className={classes.headerLink}>お問い合わせ</Link>
-          </li>
-        </ul>
-      </nav>
+    <header className="bg-gray-800 text-white p-6 font-bold flex justify-between items-center">
+      <Link href="/" className="header-link">
+        Blog
+      </Link>
+      {!isLoding && (
+        <div className="flex items-center gap-4">
+          {session ? (
+            <>
+              <Link href="/admin" className="header-link">
+                管理画面
+              </Link>
+              <button onClick={handleLogout}>ログアウト</button>
+            </>
+          ) : (
+            <>
+              <Link href="/contact" className="header-link">
+                お問い合わせ
+              </Link>
+              <Link href="/login" className="header-link">
+                ログイン
+              </Link>
+            </>
+          )}
+        </div>
+      )}
     </header>
-  );
-};
+  )
+}
 
 export default Header;

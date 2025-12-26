@@ -1,6 +1,8 @@
 import React from 'react'
 import { Category } from '../new/page'
 import { CategoriesSelect } from './CategoriesSelect' 
+import { supabase } from '../../../utils/supabase'
+import { v4 as uuidv4 } from 'uuid'  // 固有IDを生成するライブラリ
 
 interface Props {
   mode:'new' | 'edit'
@@ -16,6 +18,38 @@ interface Props {
   onDelete?: () => void
   isLoading?: boolean
 }
+
+const [thumbnailImageKey, setThumbnailImageUrl] = useState('')
+
+  const handleImageChange = async (
+    event: ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
+    if (!event.target.files || event.target.files.length == 0) {
+      // 画像が選択されていないのでreturn
+      return
+    }
+
+    const file = event.target.files[0] // 選択された画像を取得
+
+    const filePath = `private/${uuidv4()}` // ファイルパスを指定
+
+    // Supabaseに画像をアップロード
+    const { data, error } = await supabase.storage
+      .from('post_thumbnail')　// ここでバケット名を指定
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false,
+      })
+
+    // アップロードに失敗したらエラーを表示して終了
+    if (error) {
+      alert(error.message)
+      return
+    }
+
+    // data.pathに、画像固有のkeyが入っているので、thumbnailImageKeyに格納する
+    setThumbnailImageKey(data.path)
+  }
 
 export const PostForm: React.FC<Props> = ({
   mode,
@@ -65,20 +99,13 @@ export const PostForm: React.FC<Props> = ({
         />
       </div>
       <div>
-        <label
-          htmlFor="thumbnailUrl"
-          className="block text-sm font-medium text-gray-700"
-        >
-          サムネイルURL
-        </label>
-        <input
-          type="text"
-          id="thumbnailUrl"
-          value={thumbnailUrl}
-          disabled={isLoading}
-          onChange={(e) => setThumbnailUrl(e.target.value)}
-          className="mt-1 block w-full rounded-md border border-gray-200 p-3"
-        />
+      　　<label
+      　　htmlFor="thumbnailImageKey"
+      　　className="block text-sm font-medium text-gray-700"
+      >
+      　　サムネイルURL
+      </label>
+      <input type="file" id="thumbnailImageKey" onChange={handleImageChange}　accept="image/*" />
       </div>
       <div>
         <label
