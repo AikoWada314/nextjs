@@ -36,7 +36,7 @@ export default function Page() {
 
       alert('記事を更新しました。')
       router.push('/admin/posts') 
-    } catch (error) {
+    } catch {
       alert("記事の更新に失敗しました")
     } finally {
       setIsLoading(false)
@@ -56,12 +56,13 @@ export default function Page() {
         throw new Error(`削除に失敗しました: ${res.status} - ${errorText}`)
       }
 
-      const data = await res.json()
+      await res.json()
       alert('記事を削除しました。')
       router.push('/admin/posts')
 
     } catch (error) {
-      alert(`記事の削除に失敗しました: ${error.message}`)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`記事の削除に失敗しました: ${errorMessage}`)
     } finally {
       setIsLoading(false)
     }

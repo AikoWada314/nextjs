@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { supabase } from '@/app/utils/supabase'
 
 const prisma = new PrismaClient()
 
@@ -28,7 +29,22 @@ export const GET = async (
       },
     })
 
-    return NextResponse.json({ status: 'OK', post: post }, { status: 200 })
+    // thumbnailImageKeyから公開URLを生成
+    let thumbnailUrl = '';
+    if (post?.thumbnailImageKey) {
+      const { data: urlData } = supabase.storage
+        .from('post_thumbnail')
+        .getPublicUrl(post.thumbnailImageKey)
+      thumbnailUrl = urlData.publicUrl
+    }
+    
+    // thumbnailUrlを含めてレスポンスを返す
+    const postWithThumbnailUrl = post ? {
+      ...post,
+      thumbnailUrl,
+    } : null
+
+    return NextResponse.json({ status: 'OK', post: postWithThumbnailUrl }, { status: 200 })
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 })
@@ -45,7 +61,7 @@ interface UpdatePostRequestBody {
   title:string
   content:string
   categories:{id:number}[]
-  thumbnailUrl:string
+  thumbnailImageKey:string
 }
 
 //PUTと命令することで、PUTリクエストの時にこの関数が呼ばれる
@@ -58,7 +74,7 @@ export const PUT = async(
   const{id} =params
 
   //リクエストのbodyを取得
-  const { title, content, categories, thumbnailUrl}: UpdatePostRequestBody = await request.json()
+  const { title, content, categories, thumbnailImageKey}: UpdatePostRequestBody = await request.json()
 
   try{
     //idを指定して、Postを更新
@@ -69,7 +85,7 @@ export const PUT = async(
       data:{
         title,
         content,
-        thumbnailUrl,
+        thumbnailImageKey,
       },
     })
 

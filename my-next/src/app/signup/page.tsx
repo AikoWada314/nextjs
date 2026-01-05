@@ -30,7 +30,7 @@ export default function Page() {
         setPassword('')
         setMessage('確認メールを送信しました。メールをご確認ください。')
       }
-    } catch (error) {
+    } catch {
       setMessage('予期しないエラーが発生しました。')
     } finally {
       setLoading(false)

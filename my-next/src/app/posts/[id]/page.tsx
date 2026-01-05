@@ -23,8 +23,9 @@ export default function Detail() {
 
       const data = await res.json();
 
-      if (data.posts && data.posts.length > 0) {
-        setPost(data.posts[0]);
+      // APIは {status:'OK', post: {...}} の形式で返す
+      if (data.post) {
+        setPost(data.post);
       } else {
         setPost(null);
       }

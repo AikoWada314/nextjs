@@ -32,7 +32,7 @@ export default function AdminPage() {
         
         setPosts(data.posts || []);
         
-      } catch (error) {
+      } catch {
         setPosts([]);
       } finally {
         setIsLoading(false);

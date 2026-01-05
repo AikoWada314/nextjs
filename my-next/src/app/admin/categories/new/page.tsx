@@ -23,7 +23,7 @@ export default function CategoryNew() {
         body:JSON.stringify({name})
       })
   
-        const { id } = await res.json()
+        await res.json()
   
         router.push('/admin/categories')
   

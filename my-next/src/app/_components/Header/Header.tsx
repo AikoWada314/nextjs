@@ -3,7 +3,6 @@
 
 import Link from "next/link";
 import React from 'react';
-import classes from './Header.module.css';
 import { useSupabaseSession } from '@/app/_hooks/useSupabaseSession'
 import { supabase } from '@/app/utils/supabase'
 
@@ -23,7 +22,7 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-4">
           {session ? (
             <>
-              <Link href="/admin" className="header-link">
+              <Link href="/admin/posts" className="header-link">
                 管理画面
               </Link>
               <button onClick={handleLogout}>ログアウト</button>

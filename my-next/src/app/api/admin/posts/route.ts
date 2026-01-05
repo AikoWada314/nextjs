@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import { NextRequest, NextResponse } from 'next/server'
+import { supabase } from '@/app/utils/supabase'
 
 const prisma = new PrismaClient()
 
@@ -35,7 +36,22 @@ export const GET = async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json({ status: 'OK', posts: posts }, { status: 200 })
+    // 各記事のthumbnailImageKeyから公開URLを生成
+    const postsWithThumbnailUrl = posts.map(post => {
+      let thumbnailUrl = '';
+      if (post.thumbnailImageKey) {
+        const { data: urlData } = supabase.storage
+          .from('post_thumbnail')
+          .getPublicUrl(post.thumbnailImageKey)
+        thumbnailUrl = urlData.publicUrl
+      }
+      return {
+        ...post,
+        thumbnailUrl,
+      }
+    })
+
+    return NextResponse.json({ status: 'OK', posts: postsWithThumbnailUrl }, { status: 200 })
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 })
@@ -52,23 +68,24 @@ interface CreatePostRequestBody {
   content: string
   categories:{id:number}[]
   thumbnailUrl:string
+  thumbnailImageKey?:string
 }
 
 // POSTという命名にすることで、POSTリクエストの時にこの関数が呼ばれる
-export const POST = async (request:NextRequest, context:any) => {
+export const POST = async (request:NextRequest) => {
   try{
     //リクエストのbodyを取得
     const body = await request.json()
     
     //bodyの中からtitle, content, categories, thumbnailUrlを取り出す
-    const {title, content, categories, thumbnailUrl}:CreatePostRequestBody = body
+    const {title, content, categories, thumbnailUrl, thumbnailImageKey}:CreatePostRequestBody = body
 
     //投稿をDBに生成
     const data = await prisma.post.create({
       data:{
         title,
         content,
-        thumbnailUrl,
+        thumbnailImageKey: thumbnailImageKey || thumbnailUrl || '',
       },
     })
 

@@ -1,10 +1,11 @@
-import {NextRequest, NextResponse} from 'next/server'
+import {NextResponse} from 'next/server'
 import {PrismaClient} from '@prisma/client'
+import { supabase } from '@/app/utils/supabase'
 
 const prisma = new PrismaClient()
 
 // GETという命名にすることで、GETリクエストの時にこの関数が呼ばれる
-export const GET = async (request:NextRequest) => {
+export const GET = async () => {
   try {
     // Postの一覧をDBから取得
     const posts = await prisma.post.findMany({
@@ -27,8 +28,24 @@ export const GET = async (request:NextRequest) => {
         createdAt:'desc',
       },
     })
+    
+    // 各記事のthumbnailImageKeyから公開URLを生成
+    const postsWithThumbnailUrl = posts.map(post => {
+      let thumbnailUrl = '';
+      if (post.thumbnailImageKey) {
+        const { data: urlData } = supabase.storage
+          .from('post_thumbnail')
+          .getPublicUrl(post.thumbnailImageKey)
+        thumbnailUrl = urlData.publicUrl
+      }
+      return {
+        ...post,
+        thumbnailUrl,
+      }
+    })
+    
     // レスポンスを返す
-    return NextResponse.json({status:'OK',posts:posts},
+    return NextResponse.json({status:'OK',posts:postsWithThumbnailUrl},
       {status:200})
   }
   catch(error){

@@ -1,9 +1,9 @@
 import { PrismaClient } from '@prisma/client'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
 const prisma = new PrismaClient()
 
-export const GET = async (request: NextRequest) => {
+export const GET = async () => {
   try {
     // カテゴリーの一覧をDBから取得
     const categories = await prisma.category.findMany({
@@ -26,7 +26,7 @@ interface CreateCategoryRequestBody {
   name: string
 }
 
-export const POST = async (request: Request, context: any) => {
+export const POST = async (request: Request) => {
   try {
     // リクエストのbodyを取得
     const body = await request.json()
