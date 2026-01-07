@@ -1,7 +1,7 @@
 import React, { useState, ChangeEvent, useEffect } from 'react'
 import Image from 'next/image'
 import { Category } from '../new/page'
-import { CategoriesSelect } from './CategoriesSelect' 
+import { CategoriesSelect } from './CategoriesSelect'
 import { supabase } from '../../../utils/supabase'
 import { v4 as uuidv4 } from 'uuid'  // 固有IDを生成するライブラリ
 
@@ -11,8 +11,8 @@ interface Props {
   setTitle: (title: string) => void
   content:string
   setContent:(content:string) => void
-  thumbnailUrl: string
-  setThumbnailUrl: (thumbnailUrl: string) => void
+  thumbnailImageKey: string
+  setThumbnailImageKey: (thumbnailImageKey: string) => void
   categories: Category[]
   setCategories: (categories: Category[]) => void
   onSubmit: (e: React.FormEvent) => void
@@ -26,8 +26,8 @@ export const PostForm: React.FC<Props> = ({
   setTitle,
   content,
   setContent,
-  thumbnailUrl,
-  setThumbnailUrl,
+  thumbnailImageKey,
+  setThumbnailImageKey,
   categories,
   setCategories,
   onSubmit,
@@ -38,14 +38,14 @@ export const PostForm: React.FC<Props> = ({
   const [thumbnailImageUrl, setThumbnailImageUrl] = useState<null | string>(
     null,
   )
-  const [thumbnailImageKey, setThumbnailImageKey] = useState<string>('')
+  // const [thumbnailImageKey, setThumbnailImageKey] = useState<string>('')
 
   // 既存のthumbnailUrlがある場合は初期値として設定
-  useEffect(() => {
-    if (thumbnailUrl) {
-      setThumbnailImageUrl(thumbnailUrl)
-    }
-  }, [thumbnailUrl])
+  // useEffect(() => {
+  //   if (thumbnailUrl) {
+  //     setThumbnailImageUrl(thumbnailUrl)
+  //   }
+  // }, [thumbnailUrl])
 
   useEffect(() => {
     if (!thumbnailImageKey) return
@@ -94,7 +94,8 @@ export const PostForm: React.FC<Props> = ({
       .getPublicUrl(data.path)
 
     setThumbnailImageKey(data.path)
-    setThumbnailUrl(urlData.publicUrl)
+    console.log(urlData.publicUrl)
+    setThumbnailImageUrl(urlData.publicUrl)
   }
 
   return (

@@ -6,5 +6,5 @@ export interface Post {
   content: string
   createdAt: string
   postCategories: { category: Category }[]
-  thumbnailUrl: string
+  thumbnailImageKey: string
 }
