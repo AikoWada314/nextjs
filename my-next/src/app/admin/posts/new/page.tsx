@@ -14,7 +14,8 @@ export interface Category {
 export default function Page() {
   const [title, setTitle] = useState('');
   const [content,setContent]=useState('');
-  const [thumbnailUrl,setThumbnailUrl]=useState('https://placehold.jp/800x400.png');
+  // const [thumbnailUrl,setThumbnailUrl]=useState('https://placehold.jp/800x400.png');
+  const [thumbnailImageKey, setThumbnailImageKey] = useState('');
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -29,7 +30,7 @@ const handleSubmit = async(e:React.FormEvent) =>{
         headers:{
           'Content-Type':'application/json',
         },
-        body:JSON.stringify({title,content,thumbnailUrl,categories})
+        body:JSON.stringify({title,content,thumbnailImageKey,categories})
       })
 
       if (!res.ok) {
@@ -50,7 +51,7 @@ const handleSubmit = async(e:React.FormEvent) =>{
     }
   }
 
-  
+
 
   return (
       <div className="main flex-1 pl-10 pr-10 pt-10">
@@ -63,8 +64,8 @@ const handleSubmit = async(e:React.FormEvent) =>{
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}

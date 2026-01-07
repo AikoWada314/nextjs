@@ -10,7 +10,8 @@ import { Category } from '../../../_types/Category'
 export default function Page() {
   const [title, setTitle] = useState('');
   const [content,setContent]=useState('');
-  const [thumbnailUrl,setThumbnailUrl]=useState('https://placehold.jp/800x400.png');
+  const [thumbnailImageKey, setThumbnailImageKey] = useState('');
+  // const [thumbnailUrl,setThumbnailUrl]=useState('https://placehold.jp/800x400.png');
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { id } = useParams()
@@ -26,16 +27,16 @@ export default function Page() {
         headers:{
           'Content-Type':'application/json',
         },
-        body:JSON.stringify({title,content,thumbnailUrl,categories})
+        body:JSON.stringify({title,content,thumbnailImageKey,categories})
       })
 
-      if (!res.ok) { 
+      if (!res.ok) {
         const errorText = await res.text()
         throw new Error(`更新に失敗しました: ${res.status} - ${errorText}`)
       }
 
       alert('記事を更新しました。')
-      router.push('/admin/posts') 
+      router.push('/admin/posts')
     } catch {
       alert("記事の更新に失敗しました")
     } finally {
@@ -46,7 +47,7 @@ export default function Page() {
   const handleDelete = async () => {
     if (!confirm('記事を削除しますか？')) return
     setIsLoading(true)
-    try { 
+    try {
       const res = await fetch(`/api/admin/posts/${id}`, {
         method: 'DELETE',
       })
@@ -67,22 +68,22 @@ export default function Page() {
       setIsLoading(false)
     }
   }
-  
 
-  
+
+
   useEffect(() => {
     const fetcher = async () => {
       const res = await fetch(`/api/admin/posts/${id}`)
       const { post }: { post: Post } = await res.json()
       setTitle(post.title)
       setContent(post.content)
-      setThumbnailUrl(post.thumbnailUrl)
+      setThumbnailImageKey(post.thumbnailImageKey)
       setCategories(post.postCategories.map((pc) => pc.category))
     }
 
     fetcher()
   }, [id])
-  
+
 
   return (
       <div className="main flex-1 pl-10 pr-10 pt-10">
@@ -95,8 +96,8 @@ export default function Page() {
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}
