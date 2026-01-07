@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
-import { supabase } from '@/app/utils/supabase'
 
 const prisma = new PrismaClient()
 
@@ -28,20 +27,10 @@ export const GET = async (
         },
       },
     })
-
-    // thumbnailImageKeyから公開URLを生成
-    let thumbnailUrl = '';
-    if (post?.thumbnailImageKey) {
-      const { data: urlData } = supabase.storage
-        .from('post_thumbnail')
-        .getPublicUrl(post.thumbnailImageKey)
-      thumbnailUrl = urlData.publicUrl
-    }
     
     // thumbnailUrlを含めてレスポンスを返す
     const postWithThumbnailUrl = post ? {
       ...post,
-      thumbnailUrl,
     } : null
 
     return NextResponse.json({ status: 'OK', post: postWithThumbnailUrl }, { status: 200 })

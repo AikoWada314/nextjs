@@ -14,10 +14,9 @@ export interface Category {
 export default function Page() {
   const [title, setTitle] = useState('');
   const [content,setContent]=useState('');
-  const [thumbnailUrl,setThumbnailUrl]=useState('https://placehold.jp/800x400.png');
+  const [thumbnailImageKey,setThumbnailImageKey]=useState('');
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(false)
-
   const router = useRouter()
 
 const handleSubmit = async(e:React.FormEvent) =>{
@@ -29,7 +28,7 @@ const handleSubmit = async(e:React.FormEvent) =>{
         headers:{
           'Content-Type':'application/json',
         },
-        body:JSON.stringify({title,content,thumbnailUrl,categories})
+        body:JSON.stringify({title,content,thumbnailImageKey,categories})
       })
 
       if (!res.ok) {
@@ -63,8 +62,8 @@ const handleSubmit = async(e:React.FormEvent) =>{
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}

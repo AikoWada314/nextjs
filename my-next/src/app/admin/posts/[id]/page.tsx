@@ -10,7 +10,7 @@ import { Category } from '../../../_types/Category'
 export default function Page() {
   const [title, setTitle] = useState('');
   const [content,setContent]=useState('');
-  const [thumbnailUrl,setThumbnailUrl]=useState('https://placehold.jp/800x400.png');
+  const [thumbnailImageKey,setThumbnailImageKey]=useState('');
   const [categories, setCategories] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const { id } = useParams()
@@ -26,7 +26,7 @@ export default function Page() {
         headers:{
           'Content-Type':'application/json',
         },
-        body:JSON.stringify({title,content,thumbnailUrl,categories})
+        body:JSON.stringify({title,content,thumbnailImageKey,categories})
       })
 
       if (!res.ok) { 
@@ -76,7 +76,7 @@ export default function Page() {
       const { post }: { post: Post } = await res.json()
       setTitle(post.title)
       setContent(post.content)
-      setThumbnailUrl(post.thumbnailUrl)
+      setThumbnailImageKey(post.thumbnailImageKey)
       setCategories(post.postCategories.map((pc) => pc.category))
     }
 
@@ -95,8 +95,8 @@ export default function Page() {
         setTitle={setTitle}
         content={content}
         setContent={setContent}
-        thumbnailUrl={thumbnailUrl}
-        setThumbnailUrl={setThumbnailUrl}
+        thumbnailImageKey={thumbnailImageKey}
+        setThumbnailImageKey={setThumbnailImageKey}
         categories={categories}
         setCategories={setCategories}
         onSubmit={handleSubmit}

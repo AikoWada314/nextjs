@@ -37,10 +37,6 @@ export const GET = async (request:NextRequest,
       },
     })
     
-    console.log('📦 DBから取得した記事:', post ? '見つかりました' : '見つかりませんでした');
-    if (post) {
-      console.log('📝 記事タイトル:', post.title);
-    }
     
     // thumbnailImageKeyから公開URLを生成
     let thumbnailUrl = '';
