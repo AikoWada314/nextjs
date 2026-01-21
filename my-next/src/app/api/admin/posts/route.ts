@@ -1,14 +1,27 @@
 import { PrismaClient } from '@prisma/client'
-import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/app/utils/supabase'
+import { NextRequest, NextResponse } from 'next/server'
 
 const prisma = new PrismaClient()
+export type PostIndexResponse = {
+  posts: {
+    id: number
+    title: string
+    content: string
+    thumbnailImageKey: string
+    createdAt: Date
+    updatedAt: Date
+    postCategories: {
+      category: {
+        id: number
+        name: string
+      }
+    }[]
+  }[]
+}
 
-
-///////////////////////////
-//記事一覧取得
-//////////////////////////
 export const GET = async (request: NextRequest) => {
+  // GET関数の引数からrequestを受け取り、その中にAuthorizationヘッダーが含まれているので、それを取り出す
   const token = request.headers.get('Authorization') ?? ''
 
 	// supabaseに対してtokenを送る
@@ -17,6 +30,8 @@ export const GET = async (request: NextRequest) => {
   // 送ったtokenが正しくない場合、errorが返却されるので、クライアントにもエラーを返す
   if (error)
     return NextResponse.json({ status: error.message }, { status: 400 })
+
+
   try {
     const posts = await prisma.post.findMany({
       include: {
@@ -36,64 +51,72 @@ export const GET = async (request: NextRequest) => {
       },
     })
 
-    return NextResponse.json({ status: 'OK', posts: posts }, { status: 200 })
+    return NextResponse.json({ posts }, { status: 200 })
   } catch (error) {
     if (error instanceof Error)
-      return NextResponse.json({ status: error.message }, { status: 400 })
+      return NextResponse.json({ message: error.message }, { status: 400 })
   }
 }
 
-///////////////////////////
-//記事新規作成
-//////////////////////////
-
-//記事作成のリクエストボディの型
-interface CreatePostRequestBody {
-  title:string
+// 投稿作成時に送られてくるリクエストのbodyの型
+export type CreatePostRequestBody = {
+  title: string
   content: string
-  categories:{id:number}[]
-  thumbnailUrl:string
-  thumbnailImageKey?:string
+  categories: { id: number }[]
+  thumbnailImageKey: string
+}
+
+// 投稿作成APIのレスポンスの型
+export type CreatePostResponse = {
+  id: number
 }
 
 // POSTという命名にすることで、POSTリクエストの時にこの関数が呼ばれる
-export const POST = async (request:NextRequest) => {
-  try{
-    //リクエストのbodyを取得
-    const body = await request.json()
-    
-    //bodyの中からtitle, content, categories, thumbnailUrlを取り出す
-    const {title, content, categories, thumbnailUrl, thumbnailImageKey}:CreatePostRequestBody = body
+export const POST = async (request: Request) => {
+  // GET関数の引数からrequestを受け取り、その中にAuthorizationヘッダーが含まれているので、それを取り出す
+  const token = request.headers.get('Authorization') ?? ''
 
-    //投稿をDBに生成
+  // supabaseに対してtokenを送る
+  const { error } = await supabase.auth.getUser(token)
+
+  // 送ったtokenが正しくない場合、errorが返却されるので、クライアントにもエラーを返す
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 })
+
+  try {
+    // リクエストのbodyを取得
+    const body: CreatePostRequestBody = await request.json()
+
+    // bodyの中からtitle, content, categories, thumbnailKeyを取り出す
+    const { title, content, categories, thumbnailImageKey } = body
+
+    // 投稿をDBに生成
     const data = await prisma.post.create({
-      data:{
+      data: {
         title,
         content,
-        thumbnailImageKey: thumbnailImageKey || thumbnailUrl || '',
+        thumbnailImageKey,
       },
     })
 
-     // 記事とカテゴリーの中間テーブルのレコードをDBに生成
+    // 記事とカテゴリーの中間テーブルのレコードをDBに生成
     // 本来複数同時生成には、createManyというメソッドがあるが、sqliteではcreateManyが使えないので、for文1つずつ実施
-    for(const category of categories){
+    for (const category of categories) {
       await prisma.postCategory.create({
-        data:{
-          categoryId:category.id,
-          postId:data.id,
+        data: {
+          categoryId: category.id,
+          postId: data.id,
         },
       })
     }
-    
-    //レスポンスを返す
-    return NextResponse.json({
-      status:'OK',
-      message:'作成しました',
-      id:data.id,
+
+    // レスポンスを返す
+    return NextResponse.json<CreatePostResponse>({
+      id: data.id,
     })
-  } catch(error){
-    if (error instanceof Error){
-      return NextResponse.json({ status:error.message}, {status:400})
+  } catch (error) {
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 400 })
     }
   }
-}  
+}

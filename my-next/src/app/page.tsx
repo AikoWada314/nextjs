@@ -5,34 +5,18 @@ import parse from "html-react-parser";
 import React, { useEffect, useState } from "react";
 import classes from "./page.module.css";
 import type { Post } from './_types/Post';
+import useSWR from "swr";
 
 export default function BlogList() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetcher = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch("/api/posts");
-        
-        if (!res.ok) {
-          throw new Error('投稿の取得に失敗しました');
-        }
-        
-        const data = await res.json();        
-        setPosts(data.posts || []);
-        
-      } catch (error) {
-        console.error('エラー:', error);
-        setPosts([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  async function fetcher(key:string){
+    const res = await fetch(key);
+    if (!res.ok) throw new Error('投稿の取得に失敗しました');
+    const data = await res.json();
+    return data.posts || [];
+  }
 
-    fetcher();
-  }, []);
+  const { data: posts, error, isLoading } = useSWR<Post[]>('/api/posts', fetcher);
 
   if (isLoading) return <div>読み込み中</div>;
   

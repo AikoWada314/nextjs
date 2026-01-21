@@ -7,6 +7,7 @@ import FormControl from '@mui/material/FormControl'
 import Select from '@mui/material/Select'
 import Chip from '@mui/material/Chip'
 import { Category } from '../../../_types/Category'
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 interface Props {
   selectedCategories:Category[]
@@ -31,14 +32,21 @@ export const CategoriesSelect : React.FC<Props> = ({
       setSelectedCategories([...selectedCategories, category])
     })
   }
+  const { token } = useSupabaseSession();
   useEffect(() => {
+    if (!token) return;
     const fetcher = async() =>{
-    const res = await fetch('/api/admin/categories')
+    const res = await fetch('/api/admin/categories', {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token,
+      },
+    })
     const {categories} = await res.json()
     setCategories(categories)
     }  
     fetcher()
-  }, [])
+  }, [token])
 
   return(
  <FormControl className="w-full">

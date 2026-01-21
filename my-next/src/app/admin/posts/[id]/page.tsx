@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { PostForm } from '../_components/PostForm'
 import { Post } from '../../../_types/Post'
 import { Category } from '../../../_types/Category'
-
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 
 export default function Page() {
   const [title, setTitle] = useState('');
@@ -15,16 +15,18 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(false)
   const { id } = useParams()
   const router = useRouter()
-
+  const { token } = useSupabaseSession()
  //更新ボタンを押したときの処理
   const handleSubmit = async(e:React.FormEvent) =>{
     e.preventDefault()
     setIsLoading(true)
+    if (!token) return
     try {
       const res = await fetch(`/api/admin/posts/${id}`,{
         method:'PUT',
         headers:{
           'Content-Type':'application/json',
+          Authorization: token,
         },
         body:JSON.stringify({title,content,thumbnailImageKey,categories})
       })
@@ -72,7 +74,13 @@ export default function Page() {
   
   useEffect(() => {
     const fetcher = async () => {
-      const res = await fetch(`/api/admin/posts/${id}`)
+      if (!token) return;
+      const res = await fetch(`/api/admin/posts/${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token,
+        },
+      })
       const { post }: { post: Post } = await res.json()
       setTitle(post.title)
       setContent(post.content)
@@ -81,7 +89,7 @@ export default function Page() {
     }
 
     fetcher()
-  }, [id])
+  }, [id, token])
   
 
   return (

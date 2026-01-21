@@ -2,32 +2,47 @@
 
 import { supabase } from '@/app/utils/supabase'
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+
+type FormValues = {
+  email: string
+  password: string
+}
 
 export default function Page() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormValues>({
+    defaultValues: {
+      email: '',
+      password: '',
+    },
+    mode: 'onBlur',
+  })
+
+  const onSubmit = async (data: FormValues) => {
     setLoading(true)
     setMessage('')
 
     try {
       const { error } = await supabase.auth.signUp({
-        email,
-        password,
+        email: data.email,
+        password: data.password,
         options: {
           emailRedirectTo: `${window.location.origin}/login`,
         },
       })
-      
+
       if (error) {
         setMessage(`登録に失敗しました: ${error.message}`)
       } else {
-        setEmail('')
-        setPassword('')
+        reset() // 入力をまとめて初期化
         setMessage('確認メールを送信しました。メールをご確認ください。')
       }
     } catch {
@@ -39,7 +54,7 @@ export default function Page() {
 
   return (
     <div className="flex justify-center pt-[240px]">
-      <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-[400px]">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 w-full max-w-[400px]" noValidate>
         {message && (
           <div
             className={`p-4 text-sm rounded-lg ${
@@ -51,44 +66,44 @@ export default function Page() {
             {message}
           </div>
         )}
-        
+
         <div>
-          <label
-            htmlFor="email"
-            className="block mb-2 text-sm font-medium text-gray-900"
-          >
+          <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900">
             メールアドレス
           </label>
           <input
             type="email"
-            name="email"
             id="email"
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 disabled:opacity-50"
             placeholder="name@company.com"
-            required
             disabled={loading}
-            onChange={(e) => setEmail(e.target.value)}
-            value={email}
+            {...register('email', {
+              required: 'メールアドレスは必須です',
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'メールアドレスの形式が正しくありません',
+              },
+            })}
           />
+          {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
         </div>
+
         <div>
-          <label
-            htmlFor="password"
-            className="block mb-2 text-sm font-medium text-gray-900"
-          >
+          <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900">
             パスワード
           </label>
           <input
             type="password"
-            name="password"
             id="password"
             placeholder="••••••••"
             className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 disabled:opacity-50"
-            required
             disabled={loading}
-            onChange={(e) => setPassword(e.target.value)}
-            value={password}
+            {...register('password', {
+              required: 'パスワードは必須です',
+              minLength: { value: 8, message: 'パスワードは8文字以上にしてください' },
+            })}
           />
+          {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
         </div>
 
         <div>

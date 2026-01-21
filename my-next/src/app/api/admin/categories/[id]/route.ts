@@ -1,89 +1,129 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client'
+import { supabase } from '@/app/utils/supabase'
+import { NextRequest, NextResponse } from 'next/server'
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
-export const GET = async(
-  request:NextRequest,
-  {params}:{params:{id:string}},
-)=> {
-  const{id} =params
-  try{
-    const category=await prisma.category.findUnique({
-      where:{
-        id:parseInt(id),
+// カテゴリー詳細APIのレスポンスの型
+export type CategoryShowResponse = {
+  category: {
+    id: number
+    name: string
+    createdAt: Date
+    updatedAt: Date
+  }
+}
+
+export const GET = async (
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) => {
+  // GET関数の引数からrequestを受け取り、その中にAuthorizationヘッダーが含まれているので、それを取り出す
+  const token = request.headers.get('Authorization') ?? ''
+
+  // supabaseに対してtokenを送る
+  const { error } = await supabase.auth.getUser(token)
+
+  // 送ったtokenが正しくない場合、errorが返却されるので、クライアントにもエラーを返す
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 })
+
+  const { id } = await params
+
+  try {
+    const category = await prisma.category.findUnique({
+      where: {
+        id: parseInt(id),
       },
     })
 
-    return NextResponse.json({status:'OK', category},{status:200})
-  } catch(error){
-    if(error instanceof Error)
-      return NextResponse.json({status:error.message}, {status:400})
+    if (!category) {
+      return NextResponse.json(
+        { message: 'カテゴリーが見つかりません。' },
+        { status: 404 },
+      )
+    }
+
+    return NextResponse.json<CategoryShowResponse>({ category }, { status: 200 })
+  } catch (error) {
+    if (error instanceof Error)
+      return NextResponse.json({ message: error.message }, { status: 400 })
   }
 }
 
-///////////////////////
-//カテゴリー更新API
-//////////////////////
-
-//カテゴリーの更新時に送られてくるリクエストのbodyの型
-interface UpdateCategoryRequestBody{
-  name:string
+// カテゴリーの更新時に送られてくるリクエストのbodyの型
+export type UpdateCategoryRequestBody = {
+  name: string
 }
 
-export const PUT = async(
-  request:NextRequest,
-  {params}:{params:{id:string}},//ここでリクエストパラメータを受け取る
- ) => {
-    //paramsの中にidが入っているので、それを取り出す
-    const {id} = params
+export const PUT = async (
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }, // ここでリクエストパラメータを受け取る
+) => {
+  // GET関数の引数からrequestを受け取り、その中にAuthorizationヘッダーが含まれているので、それを取り出す
+  const token = request.headers.get('Authorization') ?? ''
 
-    //リクエストのbodyを取得
-    const {name}:UpdateCategoryRequestBody = await request.json()
+  // supabaseに対してtokenを送る
+  const { error } = await supabase.auth.getUser(token)
 
-    try{
-      //idを指定して、Categoryを更新
-      const category =await prisma.category.update({
-        where:{
-          id:parseInt(id),
-        },
-        data:{
-          name,
-        },
-      })
-      //レスポンスを返す
-      return NextResponse.json({status:'OK',category}, {status:200})
-    } catch(error){
-      if (error instanceof Error)
-        return NextResponse.json({status:error.message}, {status:400})
-    }
-   }
+  // 送ったtokenが正しくない場合、errorが返却されるので、クライアントにもエラーを返す
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 })
 
+  // paramsの中にidが入っているので、それを取り出す
+  const { id } = await params
 
+  // リクエストのbodyを取得
+  const { name }: UpdateCategoryRequestBody = await request.json()
 
-  ///////////////////////
-  //カテゴリー削除API
-  //////////////////////
+  try {
+    // idを指定して、Categoryを更新
+    await prisma.category.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: {
+        name,
+      },
+    })
 
-  export const DELETE =async(
-    request:NextRequest,
-    {params}:{params : {id:string}},//ここでリクエストパラメタを受け取る
-  ) =>{
-    //paramsの中にidが入っているので、それを取り出す
-    const {id} =params
-
-    try{
-      //idを指定して、categoryを削除
-      await prisma.category.delete({
-        where:{
-          id:parseInt(id),
-        },
-      })
-
-      //レスポンスを返す
-      return NextResponse.json({status:'OK'}, {status:200})
-    } catch(error){
-      if(error instanceof Error)
-        return NextResponse.json({status:error.message}, {status:400})
-    }
+    // レスポンスを返す
+    return NextResponse.json({ message: 'OK' }, { status: 200 })
+  } catch (error) {
+    if (error instanceof Error)
+      return NextResponse.json({ message: error.message }, { status: 400 })
   }
+}
+
+export const DELETE = async (
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }, // ここでリクエストパラメータを受け取る
+) => {
+  // GET関数の引数からrequestを受け取り、その中にAuthorizationヘッダーが含まれているので、それを取り出す
+  const token = request.headers.get('Authorization') ?? ''
+
+  // supabaseに対してtokenを送る
+  const { error } = await supabase.auth.getUser(token)
+
+  // 送ったtokenが正しくない場合、errorが返却されるので、クライアントにもエラーを返す
+  if (error)
+    return NextResponse.json({ status: error.message }, { status: 400 })
+
+  // paramsの中にidが入っているので、それを取り出す
+  const { id } = await params
+
+  try {
+    // idを指定して、Categoryを削除
+    await prisma.category.delete({
+      where: {
+        id: parseInt(id),
+      },
+    })
+
+    // レスポンスを返す
+    return NextResponse.json({ message: 'OK' }, { status: 200 })
+  } catch (error) {
+    if (error instanceof Error)
+      return NextResponse.json({ message: error.message }, { status: 400 })
+  }
+}

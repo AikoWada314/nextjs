@@ -1,23 +1,34 @@
 "use client"
 
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
 import { Category } from "../../_types/Category";
-
+import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import useSWR from "swr";
 
 export default function AdminCategory() {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { token } = useSupabaseSession()
 
-  useEffect(() => {
-    const fetcher = async () => {
-      const res = await fetch('/api/admin/categories')
-      const {categories} =await res.json()
-      
-      setCategories(categories)
-    };
+  const fetcher = async (url: string): Promise<Category[]> => {
+    if (!token) throw new Error('認証トークンがありません');
+    const res = await fetch(url, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: token,
+      },
+    });
+    if (!res.ok) throw new Error('カテゴリーの取得に失敗しました');
+    const data = await res.json();
+    return data.categories || [];
+  };
 
-    fetcher()
-  }, []);
+  const { data: categories, error, isLoading } = useSWR<Category[]>(
+    token ? "/api/admin/categories" : null,
+    fetcher
+  );
+
+  if (isLoading) return <div>読み込み中</div>;
+  if (error) return <div>エラーが発生しました</div>;
+  if (!categories || categories.length === 0) return <div>カテゴリーがありません</div>;
 
   return (
     <div className="main flex-1 pl-10 pr-10 pt-10">
