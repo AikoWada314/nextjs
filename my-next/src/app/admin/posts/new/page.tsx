@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PostForm } from "../_components/PostForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import type { CreatePostResponse, CreatePostRequestBody } from "@/app/api/admin/posts/route";
 
 export interface Category {
   id: number;
@@ -32,7 +33,7 @@ export default function Page() {
           "Content-Type": "application/json",
           Authorization: token,
         },
-        body: JSON.stringify({ title, content, thumbnailImageKey, categories }),
+        body: JSON.stringify({ title, content, thumbnailImageKey, categories } satisfies CreatePostRequestBody),
       });
 
       if (!res.ok) {
@@ -40,7 +41,7 @@ export default function Page() {
         throw new Error(`作成に失敗しました: ${res.status} - ${errorText}`);
       }
 
-      const { id } = await res.json();
+      const { id }: CreatePostResponse = await res.json();
 
       alert("記事を作成しました。");
       router.push(`/admin/posts/${id}`);

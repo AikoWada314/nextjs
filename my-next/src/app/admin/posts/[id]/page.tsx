@@ -3,10 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from 'next/navigation'
 import { PostForm } from '../_components/PostForm'
-import { Post } from '../../../_types/Post'
 import { Category } from '../../../_types/Category'
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { useApiSWR } from "@/app/_hooks/useApiSWR";
+import type { PostShowResponse, UpdatePostRequestBody } from "@/app/api/admin/posts/[id]/route";
 
 export default function Page() {
   const [title, setTitle] = useState('');
@@ -29,7 +29,7 @@ export default function Page() {
           'Content-Type':'application/json',
           Authorization: token,
         },
-        body:JSON.stringify({title,content,thumbnailImageKey,categories})
+        body:JSON.stringify({title,content,thumbnailImageKey,categories} satisfies UpdatePostRequestBody)
       })
 
       if (!res.ok) { 
@@ -52,6 +52,10 @@ export default function Page() {
     try { 
       const res = await fetch(`/api/admin/posts/${id}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token || '',
+        },
       })
 
       if (!res.ok) {
@@ -72,7 +76,7 @@ export default function Page() {
   }
   
 
-  const { data, error, isLoading: isDataLoading } = useApiSWR<{ post: Post }>(
+  const { data, error, isLoading: isDataLoading } = useApiSWR<PostShowResponse>(
     id ? `/api/admin/posts/${id}` : null
   );
 
@@ -81,7 +85,12 @@ export default function Page() {
       setTitle(data.post.title)
       setContent(data.post.content)
       setThumbnailImageKey(data.post.thumbnailImageKey)
-      setCategories(data.post.postCategories.map((pc) => pc.category))
+      setCategories(data.post.postCategories.map((pc) => ({
+        id: pc.category.id,
+        name: pc.category.name,
+        createdAt: '',
+        updatedAt: '',
+      })))
     }
   }, [data])
 

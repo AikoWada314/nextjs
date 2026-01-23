@@ -1,11 +1,11 @@
 "use client"
 
 import Link from "next/link";
-import { Category } from "../../_types/Category";
 import { useApiSWR } from "@/app/_hooks/useApiSWR";
+import type { CategoriesIndexResponse } from "@/app/api/admin/categories/route";
 
 export default function AdminCategory() {
-  const { data, error, isLoading } = useApiSWR<{ categories: Category[] }>(
+  const { data, error, isLoading } = useApiSWR<CategoriesIndexResponse>(
     "/api/admin/categories"
   );
 

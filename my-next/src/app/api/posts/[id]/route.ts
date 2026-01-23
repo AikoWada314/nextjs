@@ -4,6 +4,25 @@ import { supabase } from '@/app/utils/supabase'
 
 const prisma = new PrismaClient()
 
+export type PostShowResponse = {
+  status: string
+  post: {
+    id: number
+    title: string
+    content: string
+    thumbnailImageKey: string
+    thumbnailUrl: string
+    createdAt: Date
+    updatedAt: Date
+    postCategories: {
+      category: {
+        id: number
+        name: string
+      }
+    }[]
+  } | null
+}
+
 // GETという命名にすることで、GETリクエストの時にこの関数が呼ばれる
 export const GET = async (request:NextRequest,
   {params}:{params:{id:string}},// ここでリクエストパラメータを受け取る
@@ -53,7 +72,7 @@ export const GET = async (request:NextRequest,
       thumbnailUrl,
     } : null
     
-    return NextResponse.json({status:'OK',post:postWithThumbnailUrl},{status:200})
+    return NextResponse.json<PostShowResponse>({status:'OK',post:postWithThumbnailUrl},{status:200})
   } catch(error){
     if (error instanceof Error)
       return NextResponse.json({status:error.message},{status:400})

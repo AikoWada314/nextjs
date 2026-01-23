@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { CategoryForm } from "../_components/CategoryForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { useApiSWR } from "@/app/_hooks/useApiSWR";
-import type { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
+import type { CategoryShowResponse, UpdateCategoryRequestBody } from "@/app/api/admin/categories/[id]/route";
 
 export default function CategoryEdit() {
   const [name, setName] = useState("");
@@ -47,7 +47,7 @@ export default function CategoryEdit() {
           "Content-Type": "application/json",
           Authorization: token || "",
         },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name } satisfies UpdateCategoryRequestBody),
       });
 
       if (!res.ok) {

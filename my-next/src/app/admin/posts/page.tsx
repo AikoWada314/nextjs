@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { Post } from "../../_types/Post";
 import { useApiSWR } from "@/app/_hooks/useApiSWR";
+import type { PostIndexResponse } from "@/app/api/admin/posts/route";
 
 export default function AdminPage() {
 
-  const { data, error, isLoading } = useApiSWR<{ posts: Post[] }>(
+  const { data, error, isLoading } = useApiSWR<PostIndexResponse>(
     "/api/admin/posts"
   );
 

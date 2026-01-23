@@ -5,6 +5,7 @@ import { NextRequest } from "next/server";
 
 // カテゴリー一覧APIのレスポンスの型
 export type CategoriesIndexResponse = {
+  status: string;
   categories: {
     id: number;
     name: string;
@@ -34,7 +35,7 @@ export const GET = async (request: NextRequest) => {
     });
 
     // レスポンスを返す
-    return NextResponse.json({ status: "OK", categories }, { status: 200 });
+    return NextResponse.json<CategoriesIndexResponse>({ status: "OK", categories }, { status: 200 });
   } catch (error) {
     if (error instanceof Error)
       return NextResponse.json({ status: error.message }, { status: 400 });

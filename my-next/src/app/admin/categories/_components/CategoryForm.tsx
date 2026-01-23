@@ -1,4 +1,4 @@
-import React from "react";
+import { useForm } from 'react-hook-form'
 
 //変数は戻り値不要
 //関数は戻り値必須=> voidは何も返さないという意味
