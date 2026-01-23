@@ -4,7 +4,14 @@ import { Category } from "../new/page";
 import { CategoriesSelect } from "./CategoriesSelect";
 import { supabase } from "../../../utils/supabase";
 import { v4 as uuidv4 } from "uuid"; // 固有IDを生成するライブラリ
-import { useApiSWR } from "@/app/_hooks/useApiSWR";
+import { useForm } from 'react-hook-form'
+
+type FormValues = {
+  title: string;
+  content: string;
+  thumbnailImageKey: string;
+  categories: Category[];
+}
 
 interface Props {
   mode: "new" | "edit";
@@ -16,7 +23,7 @@ interface Props {
   setThumbnailImageKey: (thumbnailImageKey: string) => void;
   categories: Category[];
   setCategories: (categories: Category[]) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (values: FormValues) => void;
   onDelete?: () => void;
   isLoading?: boolean;
 }
@@ -35,21 +42,83 @@ export const PostForm: React.FC<Props> = ({
   onDelete,
   isLoading = false,
 }) => {
+  const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<FormValues>({
+    defaultValues: {
+      title: title || '',
+      content: content || '',
+      thumbnailImageKey: thumbnailImageKey || '',
+      categories: categories || [],
+    }
+  })
+
+  // フォームの値を監視して親コンポーネントと同期
+  const formTitle = watch("title")
+  const formContent = watch("content")
+  const formThumbnailImageKey = watch("thumbnailImageKey")
+  const formCategories = watch("categories")
+
+  useEffect(() => {
+    if (formTitle !== title) {
+      setTitle(formTitle)
+    }
+  }, [formTitle, setTitle, title])
+
+  useEffect(() => {
+    if (formContent !== content) {
+      setContent(formContent)
+    }
+  }, [formContent, setContent, content])
+
+  useEffect(() => {
+    if (formThumbnailImageKey !== thumbnailImageKey) {
+      setThumbnailImageKey(formThumbnailImageKey)
+    }
+  }, [formThumbnailImageKey, setThumbnailImageKey, thumbnailImageKey])
+
+  useEffect(() => {
+    if (JSON.stringify(formCategories) !== JSON.stringify(categories)) {
+      setCategories(formCategories)
+    }
+  }, [formCategories, setCategories, categories])
+
+  // 親コンポーネントの値が変更されたらフォームに反映
+  useEffect(() => {
+    setValue("title", title)
+  }, [title, setValue])
+
+  useEffect(() => {
+    setValue("content", content)
+  }, [content, setValue])
+
+  useEffect(() => {
+    setValue("thumbnailImageKey", thumbnailImageKey)
+  }, [thumbnailImageKey, setValue])
+
+  useEffect(() => {
+    setValue("categories", categories)
+  }, [categories, setValue])
+
   // Imageタグのsrcにセットする画像URLを持たせるstate
   const [thumbnailImageUrl, setThumbnailImageUrl] = useState<null | string>(
     null
   );
 
-  const { data, error, isLoading: isDataLoading } = useApiSWR<{ url: string }>(
-    thumbnailImageKey ? `/api/admin/posts/${thumbnailImageKey}` : null
-  );
-
   useEffect(() => {
-    if (!data?.url) return;
-    if (thumbnailImageUrl === null) {
-      setThumbnailImageUrl(data.url);
+    if (thumbnailImageKey) {
+      // thumbnailImageKeyが完全なURLの場合はそのまま使用
+      if (thumbnailImageKey.startsWith('http://') || thumbnailImageKey.startsWith('https://')) {
+        setThumbnailImageUrl(thumbnailImageKey)
+      } else {
+        // パスの場合はgetPublicUrlでURLを生成（同期的に実行可能）
+        const { data: { publicUrl } } = supabase.storage
+          .from('post_thumbnail')
+          .getPublicUrl(thumbnailImageKey)
+        setThumbnailImageUrl(publicUrl)
+      }
+    } else {
+      setThumbnailImageUrl(null)
     }
-  }, [data?.url, thumbnailImageUrl]);
+  }, [thumbnailImageKey])
 
   const handleImageChange = async (
     event: ChangeEvent<HTMLInputElement>
@@ -77,17 +146,18 @@ export const PostForm: React.FC<Props> = ({
       return;
     }
 
-    // 公開URLを取得して親コンポーネントに渡す
+    // 公開URLを取得してフォームと親コンポーネントに設定
     const { data: urlData } = supabase.storage
       .from("post_thumbnail")
       .getPublicUrl(data.path);
 
+    setValue("thumbnailImageKey", data.path, { shouldValidate: true });
     setThumbnailImageKey(data.path);
     setThumbnailImageUrl(urlData.publicUrl);
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <label
           htmlFor="title"
@@ -98,11 +168,13 @@ export const PostForm: React.FC<Props> = ({
         <input
           type="text"
           id="title"
-          value={title}
+          {...register("title", { required: "タイトルは必須です" })}
           disabled={isLoading}
-          onChange={(e) => setTitle(e.target.value)}
           className="mt-1 block w-full rounded-md border border-gray-200 p-3"
         />
+        {errors.title?.message && (
+          <p className="mt-1 text-sm text-red-600">{errors.title.message}</p>
+        )}
       </div>
       <div>
         <label
@@ -113,11 +185,13 @@ export const PostForm: React.FC<Props> = ({
         </label>
         <textarea
           id="content"
-          value={content}
+          {...register("content", { required: "内容は必須です" })}
           disabled={isLoading}
-          onChange={(e) => setContent(e.target.value)}
           className="mt-1 block w-full rounded-md border border-gray-200 p-3"
         />
+        {errors.content?.message && (
+          <p className="mt-1 text-sm text-red-600">{errors.content.message}</p>
+        )}
       </div>
       <div>
         <label
@@ -131,6 +205,14 @@ export const PostForm: React.FC<Props> = ({
           onChange={handleImageChange}
           accept="image/*"
         />
+        {/* 非表示フィールドでthumbnailImageKeyを管理 */}
+        <input
+          type="hidden"
+          {...register("thumbnailImageKey", { required: "サムネイルは必須です" })}
+        />
+        {errors.thumbnailImageKey?.message && (
+          <p className="mt-1 text-sm text-red-600">{errors.thumbnailImageKey.message}</p>
+        )}
         {/* 画像の表示 */}
         {thumbnailImageUrl && (
           <div className="mt-2">
@@ -151,9 +233,15 @@ export const PostForm: React.FC<Props> = ({
           カテゴリー
         </label>
         <CategoriesSelect
-          selectedCategories={categories}
-          setSelectedCategories={setCategories}
+          selectedCategories={formCategories}
+          setSelectedCategories={(newCategories) => {
+            setValue("categories", newCategories);
+            setCategories(newCategories);
+          }}
         />
+        {errors.categories && (
+          <p className="mt-1 text-sm text-red-600">カテゴリーを選択してください</p>
+        )}
       </div>
       <button
         type="submit"

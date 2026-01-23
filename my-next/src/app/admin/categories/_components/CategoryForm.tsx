@@ -4,23 +4,23 @@ import { useForm } from 'react-hook-form'
 //関数は戻り値必須=> voidは何も返さないという意味
 interface Props {
   mode: "new" | "edit";
-  name: string;
-  setName: (title: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (values: { name: string }) => void;
   onDelete?: () => void;
   isLoading?: boolean;
 }
 
 export const CategoryForm: React.FC<Props> = ({
+  
   mode,
-  name,
-  setName,
   onSubmit,
   onDelete,
   isLoading = false,
 }) => {
+  type FormValues = { name: string }
+  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>()
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <label
           htmlFor="title"
@@ -31,11 +31,13 @@ export const CategoryForm: React.FC<Props> = ({
         <input
           type="text"
           id="title"
-          value={name}
+          {...register("name", { required: "カテゴリー名は必須です" })}
           disabled={isLoading}
-          onChange={(e) => setName(e.target.value)}
           className="mt-1 block w-full rounded-md border border-gray-200 p-3"
         />
+        {errors.name?.message && (
+          <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>
+        )}
       </div>
       <button
         type="submit"
