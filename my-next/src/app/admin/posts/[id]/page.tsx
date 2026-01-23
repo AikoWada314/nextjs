@@ -6,6 +6,7 @@ import { PostForm } from '../_components/PostForm'
 import { Post } from '../../../_types/Post'
 import { Category } from '../../../_types/Category'
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { useApiSWR } from "@/app/_hooks/useApiSWR";
 
 export default function Page() {
   const [title, setTitle] = useState('');
@@ -71,25 +72,24 @@ export default function Page() {
   }
   
 
-  
-  useEffect(() => {
-    const fetcher = async () => {
-      if (!token) return;
-      const res = await fetch(`/api/admin/posts/${id}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token,
-        },
-      })
-      const { post }: { post: Post } = await res.json()
-      setTitle(post.title)
-      setContent(post.content)
-      setThumbnailImageKey(post.thumbnailImageKey)
-      setCategories(post.postCategories.map((pc) => pc.category))
-    }
+  const { data, error, isLoading: isDataLoading } = useApiSWR<{ post: Post }>(
+    id ? `/api/admin/posts/${id}` : null
+  );
 
-    fetcher()
-  }, [id, token])
+  useEffect(() => {
+    if (data && data.post) {
+      setTitle(data.post.title)
+      setContent(data.post.content)
+      setThumbnailImageKey(data.post.thumbnailImageKey)
+      setCategories(data.post.postCategories.map((pc) => pc.category))
+    }
+  }, [data])
+
+  useEffect(() => {
+    if (error) {
+      alert(error.message)
+    }
+  }, [error])
   
 
   return (

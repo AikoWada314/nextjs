@@ -2,29 +2,14 @@
 
 import Link from "next/link";
 import { Category } from "../../_types/Category";
-import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import useSWR from "swr";
+import { useApiSWR } from "@/app/_hooks/useApiSWR";
 
 export default function AdminCategory() {
-  const { token } = useSupabaseSession()
-
-  const fetcher = async (url: string): Promise<Category[]> => {
-    if (!token) throw new Error('認証トークンがありません');
-    const res = await fetch(url, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: token,
-      },
-    });
-    if (!res.ok) throw new Error('カテゴリーの取得に失敗しました');
-    const data = await res.json();
-    return data.categories || [];
-  };
-
-  const { data: categories, error, isLoading } = useSWR<Category[]>(
-    token ? "/api/admin/categories" : null,
-    fetcher
+  const { data, error, isLoading } = useApiSWR<{ categories: Category[] }>(
+    "/api/admin/categories"
   );
+
+  const categories = data?.categories || [];
 
   if (isLoading) return <div>読み込み中</div>;
   if (error) return <div>エラーが発生しました</div>;

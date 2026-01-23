@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { CategoryForm } from "../_components/CategoryForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
-import useSWR from "swr";
+import { useApiSWR } from "@/app/_hooks/useApiSWR";
+import type { CategoryShowResponse } from "@/app/api/admin/categories/[id]/route";
 
 export default function CategoryEdit() {
   const [name, setName] = useState("");
@@ -15,21 +16,8 @@ export default function CategoryEdit() {
   const router = useRouter();
   const { token } = useSupabaseSession();
 
-  const fetcher = async (url: string): Promise<{ category: { name: string } }> => {
-    if (!token) throw new Error('認証トークンがありません');
-    const res = await fetch(url, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token,
-      },
-    });
-    if (!res.ok) throw new Error("データ取得に失敗しました");
-    return res.json();
-  };
-
-  const { data, error, isLoading: isDataLoading } = useSWR<{ category: { name: string } }>(
-    id && token ? `/api/admin/categories/${id}` : null,
-    fetcher
+  const { data, error, isLoading: isDataLoading } = useApiSWR<CategoryShowResponse>(
+    id ? `/api/admin/categories/${id}` : null
   );
 
   useEffect(() => {

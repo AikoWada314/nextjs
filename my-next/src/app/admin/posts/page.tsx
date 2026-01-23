@@ -1,49 +1,19 @@
 "use client"
 
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
 import { Post } from "../../_types/Post";
-import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { useApiSWR } from "@/app/_hooks/useApiSWR";
 
 export default function AdminPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  const { token } = useSupabaseSession()
+  const { data, error, isLoading } = useApiSWR<{ posts: Post[] }>(
+    "/api/admin/posts"
+  );
 
-
-  useEffect(() => {
-    if (!token) return
-    const fetcher = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch("/api/admin/posts", {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: token, // 👈 Header に token を付与
-        },
-        });
-        
-        if (!res.ok) {
-          throw new Error('投稿の取得に失敗しました');
-        }
-        
-        const data = await res.json();
-        
-        setPosts(data.posts || []);
-        
-      } catch {
-        setPosts([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetcher();
-  }, [token]);
+  const posts = data?.posts ?? [];
 
   if (isLoading) return <div>読み込み中</div>;
-  
+  if (error) return <div>エラーが発生しました</div>;
   if (posts.length === 0) return <div>投稿がありません</div>;
 
   return (

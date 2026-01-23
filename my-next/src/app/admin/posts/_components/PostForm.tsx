@@ -4,7 +4,7 @@ import { Category } from "../new/page";
 import { CategoriesSelect } from "./CategoriesSelect";
 import { supabase } from "../../../utils/supabase";
 import { v4 as uuidv4 } from "uuid"; // 固有IDを生成するライブラリ
-import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
+import { useApiSWR } from "@/app/_hooks/useApiSWR";
 
 interface Props {
   mode: "new" | "edit";
@@ -40,24 +40,16 @@ export const PostForm: React.FC<Props> = ({
     null
   );
 
-  const { token } = useSupabaseSession();
-  useEffect(() => {
-    if (!thumbnailImageKey) return;
+  const { data, error, isLoading: isDataLoading } = useApiSWR<{ url: string }>(
+    thumbnailImageKey ? `/api/admin/posts/${thumbnailImageKey}` : null
+  );
 
-    // アップロード時に取得した、thumbnailImageKeyを用いて画像のURLを取得
-    const fetcher = async () => {
-      if (!token) return;
-      const res = await fetch(`/api/admin/posts/${thumbnailImageKey}`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
-      });
-      const { url } = await res.json();
-      setThumbnailImageUrl(url);
-    };
-    fetcher();
-  }, [thumbnailImageKey, token]);
+  useEffect(() => {
+    if (!data?.url) return;
+    if (thumbnailImageUrl === null) {
+      setThumbnailImageUrl(data.url);
+    }
+  }, [data?.url, thumbnailImageUrl]);
 
   const handleImageChange = async (
     event: ChangeEvent<HTMLInputElement>
@@ -65,6 +57,8 @@ export const PostForm: React.FC<Props> = ({
     if (!event.target.files || event.target.files.length === 0) {
       return;
     }
+
+    
 
     const file = event.target.files[0];
     const filePath = `private/${uuidv4()}`;

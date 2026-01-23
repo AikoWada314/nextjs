@@ -2,21 +2,17 @@
 
 import Link from "next/link";
 import parse from "html-react-parser";
-import React, { useEffect, useState } from "react";
 import classes from "./page.module.css";
 import type { Post } from './_types/Post';
-import useSWR from "swr";
+import { useApiSWR } from "./_hooks/useApiSWR";
 
 export default function BlogList() {
+  const { data, error, isLoading } = useApiSWR<{ status: string; posts: Post[] }>(
+    '/api/posts',
+    { requireAuth: false } // 認証不要のAPI
+  );
 
-  async function fetcher(key:string){
-    const res = await fetch(key);
-    if (!res.ok) throw new Error('投稿の取得に失敗しました');
-    const data = await res.json();
-    return data.posts || [];
-  }
-
-  const { data: posts, error, isLoading } = useSWR<Post[]>('/api/posts', fetcher);
+  const posts = data?.posts || [];
 
   if (isLoading) return <div>読み込み中</div>;
   

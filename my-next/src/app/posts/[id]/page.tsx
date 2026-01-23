@@ -7,39 +7,17 @@ import classes from "./page.module.css";
 import parse from "html-react-parser";
 import { useEffect, useState } from "react";
 import type { Post } from "../../_types/Post";
+import { useApiSWR } from "@/app/_hooks/useApiSWR";
 
 export default function Detail() {
   const { id } = useParams();
-  const [post, setPost] = useState<Post | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetcher = async () => {
-      setIsLoading(true);
-      try {
-        const res = await fetch(`/api/posts/${id}`);
-        if (!res.ok) {
-          throw new Error("投稿の取得に失敗しました");
-        }
+  const { data, error, isLoading } = useApiSWR<{ post: Post }>(
+    id ? `/api/posts/${id}` : null
+  );
 
-        const data = await res.json();
-
-        // APIは {status:'OK', post: {...}} の形式で返す
-        if (data.post) {
-          setPost(data.post);
-        } else {
-          setPost(null);
-        }
-      } catch (error) {
-        console.error("エラー:", error);
-        setPost(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) fetcher();
-  }, [id]);
+  const post = data?.post ?? null;
+  if (error) return <div>エラーが発生しました</div>;
 
   if (isLoading) return <div>読み込み中</div>;
   if (!post) return <div>記事が見つかりません</div>;
