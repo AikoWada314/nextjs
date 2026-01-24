@@ -1,23 +1,22 @@
-import { useForm } from 'react-hook-form'
+import type { UseFormReturn } from 'react-hook-form'
 
-//変数は戻り値不要
-//関数は戻り値必須=> voidは何も返さないという意味
+export type CategoryFormValues = { name: string };
 interface Props {
   mode: "new" | "edit";
-  onSubmit: (values: { name: string }) => void;
+  form: UseFormReturn<CategoryFormValues>;
+  onSubmit: (values: CategoryFormValues) => void;
   onDelete?: () => void;
   isLoading?: boolean;
 }
 
 export const CategoryForm: React.FC<Props> = ({
-  
+  form,
   mode,
   onSubmit,
   onDelete,
   isLoading = false,
 }) => {
-  type FormValues = { name: string }
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>()
+  const { register, handleSubmit, formState: { errors } } = form
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

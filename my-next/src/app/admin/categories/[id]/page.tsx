@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { CategoryForm } from "../_components/CategoryForm";
+import { CategoryForm, CategoryFormValues } from "../_components/CategoryForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { useApiSWR } from "@/app/_hooks/useApiSWR";
 import type { CategoryShowResponse, UpdateCategoryRequestBody } from "@/app/api/admin/categories/[id]/route";
+import { useForm } from "react-hook-form";
 
 export default function CategoryEdit() {
-  const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const params = useParams();
@@ -16,15 +16,25 @@ export default function CategoryEdit() {
   const router = useRouter();
   const { token } = useSupabaseSession();
 
+  const form = useForm<CategoryFormValues>({
+    defaultValues: {
+      name: "",
+    },
+  });
+
+  const { reset } = form;
+
   const { data, error, isLoading: isDataLoading } = useApiSWR<CategoryShowResponse>(
     id ? `/api/admin/categories/${id}` : null
   );
 
   useEffect(() => {
     if (data && data.category) {
-      setName(data.category.name);
+      reset({
+        name: data.category.name,
+      });
     }
-  }, [data]);
+  }, [data, reset]);
 
   useEffect(() => {
     if (error) {
@@ -36,18 +46,22 @@ export default function CategoryEdit() {
   if (isDataLoading) return <p>読み込み中...</p>;
 
   // 更新
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (values: CategoryFormValues) => {
     setIsLoading(true);
+
+    if (!token) {
+      setIsLoading(false)
+      return;
+    }
 
     try {
       const res = await fetch(`/api/admin/categories/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token || "",
+          Authorization: token ,
         },
-        body: JSON.stringify({ name } satisfies UpdateCategoryRequestBody),
+        body: JSON.stringify(values satisfies UpdateCategoryRequestBody),
       });
 
       if (!res.ok) {
@@ -73,12 +87,17 @@ export default function CategoryEdit() {
 
     setIsLoading(true);
 
+    if (!token) {
+      setIsLoading(false)
+      return;
+    }
+
     try {
       const res = await fetch(`/api/admin/categories/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
-          Authorization: token || "",
+          Authorization: token,
         },
       });
 
@@ -106,13 +125,12 @@ export default function CategoryEdit() {
         <h1 className="text-3xl font-bold">カテゴリー編集</h1>
       </div>
 
-      <CategoryForm
-        mode="edit"
-        name={name}
-        setName={setName}
-        onSubmit={handleSubmit}
-        onDelete={handleDelete}
-        isLoading={isLoading}
+    <CategoryForm 
+      mode="edit" 
+      form={form} 
+      onSubmit={handleSubmit} 
+      onDelete={handleDelete} 
+      isLoading={isLoading} 
       />
     </div>
   );

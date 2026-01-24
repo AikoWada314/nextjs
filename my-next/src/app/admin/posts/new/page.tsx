@@ -2,9 +2,10 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { PostForm } from "../_components/PostForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import type { CreatePostResponse, CreatePostRequestBody } from "@/app/api/admin/posts/route";
+import { useForm } from "react-hook-form";
+import { PostForm, PostFormValues } from "../_components/PostForm";
 
 export interface Category {
   id: number;
@@ -14,42 +15,52 @@ export interface Category {
 }
 
 export default function Page() {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [thumbnailImageKey, setThumbnailImageKey] = useState("");
-  const [categories, setCategories] = useState<Category[]>([]);
+  const form = useForm<PostFormValues>({
+    defaultValues: {
+      title: "",
+      content: "",
+      thumbnailImageKey: "",
+      categories: [],
+    },
+  });
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { token } = useSupabaseSession();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  
+  const handleSubmit = async (values: PostFormValues) => {
     setIsLoading(true);
-    if (!token) return;
+    if (!token) {
+      setIsLoading(false)
+      return;
+    }
     try {
+      const body = {
+        title: values.title,
+        content: values.content,
+        thumbnailImageKey: values.thumbnailImageKey,
+        categories: values.categories,
+      } satisfies CreatePostRequestBody;
+
       const res = await fetch("/api/admin/posts", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: token,
         },
-        body: JSON.stringify({ title, content, thumbnailImageKey, categories } satisfies CreatePostRequestBody),
+        body: JSON.stringify(body),
       });
-
-      if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`作成に失敗しました: ${res.status} - ${errorText}`);
+      if (!res.ok) { 
+        throw new Error("記事の作成に失敗しました");
       }
-
-      const { id }: CreatePostResponse = await res.json();
-
       alert("記事を作成しました。");
-      router.push(`/admin/posts/${id}`);
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      alert(`記事の作成に失敗しました: ${errorMessage}`);
-    } finally {
+      const { id }: CreatePostResponse = await res.json();
+      router.push(`/admin/posts/${id}`); 
+    } 
+    catch (error) {
+      alert("記事の作成に失敗しました");
+    }
+    finally {
       setIsLoading(false);
     }
   };
@@ -61,14 +72,7 @@ export default function Page() {
       </div>
       <PostForm
         mode="new"
-        title={title}
-        setTitle={setTitle}
-        content={content}
-        setContent={setContent}
-        thumbnailImageKey={thumbnailImageKey}
-        setThumbnailImageKey={setThumbnailImageKey}
-        categories={categories}
-        setCategories={setCategories}
+        form={form} 
         onSubmit={handleSubmit}
         isLoading={isLoading}
       />

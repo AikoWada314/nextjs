@@ -1,7 +1,6 @@
 "use client"
 
 import Link from "next/link";
-import { Post } from "../../_types/Post";
 import { useApiSWR } from "@/app/_hooks/useApiSWR";
 import type { PostIndexResponse } from "@/app/api/admin/posts/route";
 

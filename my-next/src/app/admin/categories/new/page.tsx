@@ -5,24 +5,23 @@ import { useRouter } from "next/navigation";
 import { CategoryForm } from "../_components/CategoryForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { CreateCategoryRequestBody } from '@/app/api/admin/categories/route'
+import { useForm } from "react-hook-form";
+import { CategoryFormValues } from "../_components/CategoryForm";
 
 
 export default function CategoryNew() {
-  const [name, setName] = useState("");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const { token } = useSupabaseSession();
+  const form = useForm<CategoryFormValues>({ defaultValues: { name: "" } })
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    // フォームのデフォルトの動作をキャンセルします。
-    e.preventDefault()
-
+  const handleSubmit = async (values: CategoryFormValues) => {
     if (!token) return;
+    
 
     try {
       setIsLoading(true)
-
-      const body: CreateCategoryRequestBody = { name }
+      const body: CreateCategoryRequestBody = { name: values.name }
 
       // カテゴリーを作成します。
       const res = await fetch('/api/admin/categories', {
@@ -34,8 +33,13 @@ export default function CategoryNew() {
         body: JSON.stringify(body),
       })
 
-      // レスポンスから作成したカテゴリーのIDを取得します。
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`作成に失敗しました: ${res.status} - ${errorText}`);
+      }      
       const { id } = await res.json()
+
+      
 
       // 作成したカテゴリーの詳細ページに遷移します。
       router.push(`/admin/categories/${id}`)
@@ -58,8 +62,7 @@ export default function CategoryNew() {
       <div className="">
         <CategoryForm
           mode="new"
-          name={name}
-          setName={setName}
+          form={form}
           onSubmit={handleSubmit}
           isLoading={isLoading}
         ></CategoryForm>
