@@ -1,102 +1,42 @@
 "use client"
 
+import React, { useState } from "react";
+import { useForm } from 'react-hook-form'
 
-import React, { ReactNode, useState } from "react";
-import type { ApiType } from '../_types/Types';
+type FormValues = {
+  name: string;
+  email: string;
+  content: string;
+}
 
 export default function Contact() {
-  const [form, setForm] = useState({ name: '', email: '', content: '' });
-  const [errors, setErrors] = useState({ name: '', email: '', content: '' });
   const [submitting, setSubmitting] = useState(false);
-
-  const handleForm = (elem: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm({
-      ...form,
-      [elem.target.name]: elem.target.value
-    });
-  };
-
-
-  const valid = () => {
-    let isValid = true;
-    let nameError = "";
-    let emailError = "";
-    let contentError = "";
-
-    if (!form.name) {
-      nameError = "名前を入力してください";
-      isValid = false;
+  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormValues>({
+    defaultValues: {
+      name: '',
+      email: '',
+      content: ''
     }
-    if (form.name.length > 30) {
-      nameError = "名前は30文字以内で入力してください";
-      isValid = false;
-    }
-    if (!form.email) {
-      emailError = "メールアドレスを入力してください";
-      isValid = false;
-    }
-    if (!form.email.match(/.+@.+\..+/)) {
-      emailError = "正しいメールアドレスを入力してください";
-      isValid = false;
-    }
-    if (!form.content) {
-      contentError = "内容を入力してください";
-      isValid = false;
-    }
-    if (form.content.length > 500) {
-      contentError = "内容は500文字以内で入力してください";
-      isValid = false;
-    }
-
-    setErrors({
-      name: nameError,
-      email: emailError,
-      content: contentError
-    });
-
-    return isValid;
-  };
+  });
 
   const handleClear = () => {
-    setForm({
-      name: '',
-      email: '',
-      content: ''
-    });
-    setErrors({
-      name: '',
-      email: '',
-      content: ''
-    });
+    reset();
   };
 
-  const handleSubmit = async (elem:React.FormEvent<HTMLFormElement>) => {
-    elem.preventDefault();
-
-    if (!valid()) return;
-
+  const onSubmit = async (data: FormValues) => {
     setSubmitting(true);
     try {
-
-      const apiOptions: ApiType = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ name: form.name, email: form.email, message: form.content }),
-      };
-
       await fetch('https://1hmfpsvto6.execute-api.ap-northeast-1.amazonaws.com/dev/contacts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name: form.name, email: form.email, message: form.content }),
+        body: JSON.stringify({ name: data.name, email: data.email, message: data.content }),
       });
 
       alert('送信しました。');
       handleClear();
-    } catch (error) {
+    } catch {
       alert('送信に失敗しました。');
     }
     setSubmitting(false);
@@ -106,26 +46,69 @@ export default function Contact() {
     <>
       <div className="max-w-[800px] mx-auto py-10">
         <h1 className="text-xl font-bold mb-10">問い合わせフォーム</h1>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="flex">
             <label htmlFor="name" className="w-[240px]">お名前</label>
             <div className="flex-1">
-              <input id="name" type="text" name="name" value={form.name} onChange={handleForm} disabled={submitting} className="border border-gray-300 rounded-lg p-4 w-full"/>
-              <span className="text-red-500 block">{errors.name}</span>
+              <input 
+                id="name" 
+                type="text" 
+                {...register("name", { 
+                  required: "名前を入力してください",
+                  maxLength: {
+                    value: 30,
+                    message: "名前は30文字以内で入力してください"
+                  }
+                })} 
+                disabled={submitting} 
+                className="border border-gray-300 rounded-lg p-4 w-full"
+              />
+              {errors.name && (
+                <span className="text-red-500 block">{errors.name.message}</span>
+              )}
             </div>
           </div>
           <div className="flex mt-4">
             <label htmlFor="email" className="w-[240px]">メールアドレス</label>
             <div className="flex-1">
-              <input id="email" type="text" name="email" value={form.email} onChange={handleForm} disabled={submitting}  className="border border-gray-300 rounded-lg p-4 w-full"/>
-              <span className="text-red-500 block">{errors.email}</span>
+              <input 
+                id="email" 
+                type="email" 
+                {...register("email", { 
+                  required: "メールアドレスを入力してください",
+                  pattern: {
+                    value: /.+@.+\..+/,
+                    message: "正しいメールアドレスを入力してください"
+                  }
+                })} 
+                disabled={submitting}  
+                className="border border-gray-300 rounded-lg p-4 w-full"
+              />
+              {errors.email && (
+                <span className="text-red-500 block">{errors.email.message}</span>
+              )}
             </div>
           </div>
           <div className="flex mt-4">
             <label htmlFor="content" className="w-[240px]">本文</label>
             <div className="flex-1">
-              <textarea id="content" name="content" cols={30} rows={5} value={form.content} onChange={handleForm} disabled={submitting}  className="border border-gray-300 rounded-lg p-4 w-full"></textarea>
-              <span className="text-red-500 block">{errors.content}</span>
+              <textarea 
+                id="content" 
+                cols={30} 
+                rows={5} 
+                {...register("content", { 
+                  required: "内容を入力してください",
+                  maxLength: {
+                    value: 500,
+                    message: "内容は500文字以内で入力してください"
+                  }
+                })} 
+                disabled={submitting}  
+                className="border border-gray-300 rounded-lg p-4 w-full"
+              ></textarea>
+              {errors.content && (
+                <span className="text-red-500 block">{errors.content.message}</span>
+              )}
             </div>
           </div>
           <div className="flex justify-center mt-4 gap-4">
