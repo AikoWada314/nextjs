@@ -43,7 +43,7 @@ export const GET = async (request: NextRequest) => {
 };
 
 // カテゴリーの作成時に送られてくるリクエストのbodyの型
-interface CreateCategoryRequestBody {
+export type CreateCategoryRequestBody = {
   name: string;
 }
 

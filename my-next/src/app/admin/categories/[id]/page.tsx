@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { CategoryForm, CategoryFormValues } from "../_components/CategoryForm";
+import { CategoryForm } from "../_components/CategoryForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { useApiSWR } from "@/app/_hooks/useApiSWR";
 import type { CategoryShowResponse, UpdateCategoryRequestBody } from "@/app/api/admin/categories/[id]/route";
-import { useForm } from "react-hook-form";
+import { useCategoryForm, type CategoryFormValues } from "../_hooks/useCategoryForm";
 
 export default function CategoryEdit() {
   const [isLoading, setIsLoading] = useState(false);
@@ -16,11 +16,7 @@ export default function CategoryEdit() {
   const router = useRouter();
   const { token } = useSupabaseSession();
 
-  const form = useForm<CategoryFormValues>({
-    defaultValues: {
-      name: "",
-    },
-  });
+  const form = useCategoryForm();
 
   const { reset } = form;
 

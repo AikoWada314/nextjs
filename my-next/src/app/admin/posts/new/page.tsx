@@ -4,8 +4,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import type { CreatePostResponse, CreatePostRequestBody } from "@/app/api/admin/posts/route";
-import { useForm } from "react-hook-form";
-import { PostForm, PostFormValues } from "../_components/PostForm";
+import { PostForm } from "../_components/PostForm";
+import { usePostForm, type PostFormValues } from "../_hooks/usePostForm";
 
 export interface Category {
   id: number;
@@ -15,14 +15,7 @@ export interface Category {
 }
 
 export default function Page() {
-  const form = useForm<PostFormValues>({
-    defaultValues: {
-      title: "",
-      content: "",
-      thumbnailImageKey: "",
-      categories: [],
-    },
-  });
+  const form = usePostForm();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { token } = useSupabaseSession();

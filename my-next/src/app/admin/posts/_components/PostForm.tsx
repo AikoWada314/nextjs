@@ -8,14 +8,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { CategoriesSelect } from "./CategoriesSelect";
 import { supabase } from "../../../utils/supabase";
 import { useApiSWR } from "@/app/_hooks/useApiSWR";
-import type { Category } from "../../../_types/Category";
-
-export type PostFormValues = {
-  title: string;
-  content: string;
-  thumbnailImageKey: string;
-  categories: Category[];
-};
+import type { PostFormValues } from "../_hooks/usePostForm";
 
 interface Props {
   mode: "new" | "edit";

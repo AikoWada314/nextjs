@@ -5,15 +5,14 @@ import { useRouter } from "next/navigation";
 import { CategoryForm } from "../_components/CategoryForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { CreateCategoryRequestBody } from '@/app/api/admin/categories/route'
-import { useForm } from "react-hook-form";
-import { CategoryFormValues } from "../_components/CategoryForm";
+import { useCategoryForm, type CategoryFormValues } from "../_hooks/useCategoryForm";
 
 
 export default function CategoryNew() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const { token } = useSupabaseSession();
-  const form = useForm<CategoryFormValues>({ defaultValues: { name: "" } })
+  const form = useCategoryForm()
 
   const handleSubmit = async (values: CategoryFormValues) => {
     if (!token) return;

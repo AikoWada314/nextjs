@@ -1,6 +1,5 @@
 import type { UseFormReturn } from 'react-hook-form'
-
-export type CategoryFormValues = { name: string };
+import type { CategoryFormValues } from '../_hooks/useCategoryForm'
 interface Props {
   mode: "new" | "edit";
   form: UseFormReturn<CategoryFormValues>;

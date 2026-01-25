@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { PostForm, PostFormValues } from "../_components/PostForm";
+import { PostForm } from "../_components/PostForm";
 import { useSupabaseSession } from "@/app/_hooks/useSupabaseSession";
 import { useApiSWR } from "@/app/_hooks/useApiSWR";
-import { useForm } from "react-hook-form";
+import { usePostForm, type PostFormValues } from "../_hooks/usePostForm";
 import type { PostShowResponse, UpdatePostRequestBody } from "@/app/api/admin/posts/[id]/route";
 
 export default function Page() {
@@ -14,14 +14,7 @@ export default function Page() {
   const { token } = useSupabaseSession();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<PostFormValues>({
-    defaultValues: {
-      title: "",
-      content: "",
-      thumbnailImageKey: "",
-      categories: [],
-    },
-  });
+  const form = usePostForm();
 
   const { reset } = form;
 
